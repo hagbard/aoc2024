@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+use std::hash::Hash;
 use num_traits::PrimInt;
 use strum_macros::{Display, EnumIter};
 
