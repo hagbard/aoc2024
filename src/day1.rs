@@ -1,5 +1,6 @@
 use itertools::Itertools;
-use counter::Counter;
+
+use crate::multiset::count_occurrences_by_value;
 
 pub fn run(input: &str) -> (usize, usize) {
     let lines: Vec<&str> = input.lines().collect();
@@ -21,9 +22,9 @@ pub fn run(input: &str) -> (usize, usize) {
     // Sum over all values of: Value * <Occurrences in first list> * <Occurrences in 2nd list>
     // Using into_iter() is convenient since it avoids dealing with &&usize later but only doable
     // because we no longer need the lists.
-    let lc: Counter<usize> = Counter::from_iter(lhs.into_iter());
-    let rc: Counter<usize> = Counter::from_iter(rhs.into_iter());
-    let part2 = lc.iter().map(|(&k, &n)| k * n * rc.get(&k).unwrap_or(&0)).sum();
+    let lc = count_occurrences_by_value(lhs.into_iter());
+    let rc = count_occurrences_by_value(rhs.into_iter());
+    let part2 = lc.into_iter().map(|(k, n)| k * n * rc.get(&k).unwrap_or(&0)).sum();
     (part1, part2)
 }
 

@@ -3,6 +3,7 @@ use std::fs::read_to_string;
 use std::time::Instant;
 
 mod day1;
+mod multiset;
 
 fn main() {
     let mut total_micros: u128 = 0;
