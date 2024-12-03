@@ -12,17 +12,20 @@ pub fn run(input: &str) -> (usize, usize) {
             .map(|s| s.parse::<i32>().unwrap())
             .collect_vec());
 
-        let correctable_values = normalize_diffs(&mut diffs);
-        // Requires more than one correction. Don't even attempt it.
-        if correctable_values > 1 { continue; }
+        let non_increasing_values = normalize_diffs(&mut diffs);
+        // Requires more than one correction. Don't even attempt to correct it.
+        if non_increasing_values > 1 { continue; }
 
-        // Sequence contains at most a single "bad" value, either zero change or decrementing.
         let mut needed_correction = false;
-        // The non-incrementing entry can be merged either left or right, or just removed.
-        if correctable_values == 1 {
-            correct_once(&mut diffs);
+        if non_increasing_values == 1 {
+            // The non-increasing entry can be merged either left or right, or just removed.
+            correct_single_non_incrementing_value(&mut diffs);
             needed_correction = true;
+        } else {
+            // Even monotonic sequences can be fixed, but only by removing endpoints.
+            needed_correction = maybe_correct_single_overlarge_endpoint(&mut diffs);
         }
+        // diffs has now had at most one correction.
         if is_safe(&diffs) {
             part2 += 1;
             if !needed_correction { part1 += 1 }
@@ -52,7 +55,7 @@ fn normalize_diffs(diffs: &mut Vec<i32>) -> usize {
     }
 }
 
-fn correct_once(diffs: &mut Vec<i32>) {
+fn correct_single_non_incrementing_value(diffs: &mut Vec<i32>) {
     let (i, &bad) = diffs.iter().find_position(|&&n| n <= 0).unwrap();
     if i == 0 {
         let rhs = diffs[i + 1];
@@ -70,6 +73,20 @@ fn correct_once(diffs: &mut Vec<i32>) {
         }
     }
     diffs.remove(i);
+}
+
+fn maybe_correct_single_overlarge_endpoint(diffs: &mut Vec<i32>) -> bool {
+    // Alternate type of correctable unsafeness is overlarge diff at either end in a
+    // monotonic sequence such as [ 1, 6, 7, 8 ] or [ 1, 2, 3, 10 ]
+    if diffs[0] > 3 {
+        diffs.remove(0);
+        true
+    } else if diffs[diffs.len() - 1] > 3 {
+        diffs.pop();
+        true
+    } else {
+        false
+    }
 }
 
 #[cfg(test)]
@@ -114,7 +131,7 @@ mod tests {
         assert_eq!(normalize_diffs(&mut foo), 1);
         assert_eq!(foo, vec![2, -1, 2, 1]);
         assert_eq!(is_safe(&foo), false);
-        correct_once(&mut foo);
+        correct_single_non_incrementing_value(&mut foo);
         assert_eq!(foo, vec![1, 2, 1]);
         assert_eq!(is_safe(&foo), true);
 
@@ -123,26 +140,8 @@ mod tests {
         assert_eq!(normalize_diffs(&mut bar), 1);
         assert_eq!(bar, vec![2, 2, 0, 3]);
         assert_eq!(is_safe(&bar), false);
-        correct_once(&mut bar);
+        correct_single_non_incrementing_value(&mut bar);
         assert_eq!(bar, vec![2, 2, 3]);
         assert_eq!(is_safe(&bar), true);
     }
-
-    #[test]
-    fn test_corrected() {
-        let mut foo: Vec<i32> = vec![-2, 1, 1, 1];
-        correct_once(&mut foo);
-        assert_eq!(foo, vec![1, 1, 1]);
-        assert_eq!(is_safe(&foo), true);
-
-        let mut bar: Vec<i32> = vec![-4, 6, 1, 1];
-        correct_once(&mut bar);
-        assert_eq!(bar, vec![2, 1, 1]);
-        assert_eq!(is_safe(&bar), true);
-
-    //     assert_eq!(is_incrementing_safe(&vec![5, 1, 1, 1], true), true);
-    //     assert_eq!(is_incrementing_safe(&vec![-2, 1, 2, 3], false), true);
-    //     assert_eq!(is_incrementing_safe(&vec![3, -2, 2, 1], false), true);
-    }
 }
-
