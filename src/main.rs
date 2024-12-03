@@ -3,11 +3,12 @@ use std::fs::read_to_string;
 use std::time::Instant;
 
 mod day1;
-mod multiset;
+mod day2;
 
 fn main() {
     let mut total_micros: u128 = 0;
     total_micros += time(1, &day1::run);
+    total_micros += time(2, &day2::run);
     println!("Total time: {} µs", total_micros);
 }
 
