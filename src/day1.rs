@@ -1,7 +1,5 @@
 use itertools::Itertools;
 
-use crate::multiset::count_occurrences_by_value;
-
 pub fn run(input: &str) -> (usize, usize) {
     let lines: Vec<&str> = input.lines().collect();
 
@@ -13,18 +11,16 @@ pub fn run(input: &str) -> (usize, usize) {
             lhs.push(a);
             rhs.push(b);
         });
-    lhs.sort();
-    rhs.sort();
+    lhs.sort_unstable();
+    rhs.sort_unstable();
 
     // Sum of absolute difference of all pairs of values in sorted lists.
     let part1 = lhs.iter().zip(&rhs).map(|(&a, &b)| a.abs_diff(b)).sum();
 
     // Sum over all values of: Value * <Occurrences in first list> * <Occurrences in 2nd list>
-    // Using into_iter() is convenient since it avoids dealing with &&usize later but only doable
-    // because we no longer need the lists.
-    let lc = count_occurrences_by_value(lhs.into_iter());
-    let rc = count_occurrences_by_value(rhs.into_iter());
-    let part2 = lc.into_iter().map(|(k, n)| k * n * rc.get(&k).unwrap_or(&0)).sum();
+    let lc = lhs.iter().counts();
+    let rc = rhs.iter().counts();
+    let part2 = lc.into_iter().map(|(k, n)| k * n * rc.get(k).unwrap_or(&0)).sum();
     (part1, part2)
 }
 
