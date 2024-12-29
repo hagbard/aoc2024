@@ -1,16 +1,35 @@
-use ndarray::Array2;
+use ndarray::{Array2, Ix};
+use num_traits::ToPrimitive;
 use strum_macros::EnumIter;
 
 pub type Grid = Array2<char>;
-pub type Point = (usize, usize);
+pub type Point = (isize, isize);
+pub type Index = (Ix, Ix);
 
 pub trait PointLike {
     fn step(&self, d: Dir, n: isize) -> Option<Point>;
+
+    fn from_index(p: &Index) -> Point;
+
+    fn peek(&self, grid: &Grid) -> Option<char>;
 }
 
 impl PointLike for Point {
     fn step(&self, d: Dir, n: isize) -> Option<Point> {
         d.step(n, self)
+    }
+
+    fn from_index(idx: &Index) -> Point {
+        let &(x, y) = idx;
+        (x as isize, y as isize)
+    }
+
+    fn peek(&self, grid: &Grid) -> Option<char> {
+        let (x, y) = *self;
+        match (x.to_usize(), y.to_usize()) {
+            (Some(i), Some(j)) => grid.get((i, j)).map(|c| *c),
+            _ => None,
+        }
     }
 }
 
@@ -50,7 +69,7 @@ pub enum Dir {
 }
 
 impl Dir {
-    pub fn offset(&self) -> (isize, isize) {
+    pub fn offset(&self) -> Point {
         let n = *self as u16;
         (((n >> 8) & 0xFF) as i8 as isize, (n & 0xFF) as i8 as isize)
     }
@@ -58,8 +77,8 @@ impl Dir {
     pub fn step(&self, n: isize, p: &Point) -> Option<Point> {
         let (x, y) = p;
         let (ix, iy) = self.offset();
-        match (ix.checked_mul(n).and_then(|m| x.checked_add_signed(m)),
-               iy.checked_mul(n).and_then(|m| y.checked_add_signed(m))) {
+        match (ix.checked_mul(n).and_then(|m| x.checked_add(m)),
+               iy.checked_mul(n).and_then(|m| y.checked_add(m))) {
             (Some(next_x), Some(next_y)) => {
                 Some((next_x, next_y))
             }
