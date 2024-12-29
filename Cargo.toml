@@ -8,3 +8,7 @@ edition = "2021"
 [dependencies]
 itertools = "0.13.0"
 lazy-regex = "3.1.0"
+ndarray = "0.16.1"
+num-traits = "0.2.17"
+strum_macros = "0.26.4"
+strum = "0.26.3"
