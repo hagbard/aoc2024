@@ -1,7 +1,8 @@
 use itertools::Itertools;
 use strum::IntoEnumIterator;
-use crate::grid::{parse_lines, Dir, Grid, Point, GridIter, PointLike};
-use crate::grid::Dir::{LeftDown, LeftUp, RightDown, RightUp};
+use crate::grid::{parse_lines, Grid};
+use crate::point::{Dir, Point, GridIter, PointLike};
+use crate::point::Dir::{LeftDown, LeftUp, RightDown, RightUp};
 
 pub fn run(input: &str) -> (usize, usize) {
     let grid = parse_lines(input);

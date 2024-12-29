@@ -1,37 +1,7 @@
 use ndarray::{Array2, Ix};
-use num_traits::ToPrimitive;
-use strum_macros::EnumIter;
 
 pub type Grid = Array2<char>;
-pub type Point = (isize, isize);
 pub type Index = (Ix, Ix);
-
-pub trait PointLike {
-    fn step(&self, d: Dir, n: isize) -> Option<Point>;
-
-    fn from_index(p: &Index) -> Point;
-
-    fn peek(&self, grid: &Grid) -> Option<char>;
-}
-
-impl PointLike for Point {
-    fn step(&self, d: Dir, n: isize) -> Option<Point> {
-        d.step(n, self)
-    }
-
-    fn from_index(idx: &Index) -> Point {
-        let &(x, y) = idx;
-        (x as isize, y as isize)
-    }
-
-    fn peek(&self, grid: &Grid) -> Option<char> {
-        let (x, y) = *self;
-        match (x.to_usize(), y.to_usize()) {
-            (Some(i), Some(j)) => grid.get((i, j)).map(|c| *c),
-            _ => None,
-        }
-    }
-}
 
 pub fn parse_lines(lines: &str) -> Array2<char> {
     let mut ascii: Vec<char> = vec![];
@@ -54,56 +24,3 @@ pub fn parse_lines(lines: &str) -> Array2<char> {
     Array2::from_shape_vec((height, width), ascii).unwrap()
 }
 
-#[derive(Copy, Clone, EnumIter)]
-#[repr(u16)]
-pub enum Dir {
-    // Encode (-1, 0, 1) for both X and Y direction as signed bytes in a single u16.
-    Right = 0x0100,
-    RightUp = 0x0101,
-    Up = 0x0001,
-    LeftUp = 0xFF01,
-    Left = 0xFF00,
-    LeftDown = 0xFFFF,
-    Down = 0x00FF,
-    RightDown = 0x01FF,
-}
-
-impl Dir {
-    pub fn offset(&self) -> Point {
-        let n = *self as u16;
-        (((n >> 8) & 0xFF) as i8 as isize, (n & 0xFF) as i8 as isize)
-    }
-
-    pub fn step(&self, n: isize, p: &Point) -> Option<Point> {
-        let (x, y) = p;
-        let (ix, iy) = self.offset();
-        match (ix.checked_mul(n).and_then(|m| x.checked_add(m)),
-               iy.checked_mul(n).and_then(|m| y.checked_add(m))) {
-            (Some(next_x), Some(next_y)) => {
-                Some((next_x, next_y))
-            }
-            _ => None,
-        }
-    }
-}
-
-pub struct GridIter {
-    p: Option<Point>,
-    d: Dir,
-}
-
-impl GridIter {
-    pub fn new<'a>(p: Option<Point>, d: Dir) -> GridIter {
-        GridIter { p, d }
-    }
-}
-
-impl Iterator for GridIter {
-    type Item = Point;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        let next = self.p;
-        self.p = next.and_then(|p| self.d.step(1, &p));
-        next
-    }
-}
