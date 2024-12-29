@@ -1,6 +1,4 @@
-use num_traits::ToPrimitive;
 use strum_macros::EnumIter;
-use crate::grid::{Grid, Index};
 
 #[derive(Copy, Clone, EnumIter)]
 #[repr(u16)]
@@ -40,9 +38,7 @@ pub type Point = (isize, isize);
 pub trait PointLike {
     fn step(&self, d: Dir, n: isize) -> Option<Point>;
 
-    fn from_index(p: &Index) -> Point;
-
-    fn peek(&self, grid: &Grid) -> Option<char>;
+    fn of(p: &(usize, usize)) -> Point;
 }
 
 impl PointLike for Point {
@@ -50,17 +46,9 @@ impl PointLike for Point {
         d.step(n, self)
     }
 
-    fn from_index(idx: &Index) -> Point {
+    fn of(idx: &(usize, usize)) -> Point {
         let &(x, y) = idx;
         (x as isize, y as isize)
-    }
-
-    fn peek(&self, grid: &Grid) -> Option<char> {
-        let (x, y) = *self;
-        match (x.to_usize(), y.to_usize()) {
-            (Some(i), Some(j)) => grid.get((i, j)).map(|c| *c),
-            _ => None,
-        }
     }
 }
 

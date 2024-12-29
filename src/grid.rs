@@ -1,7 +1,8 @@
-use ndarray::{Array2, Ix};
+use ndarray::Array2;
+use num_traits::ToPrimitive;
+use crate::point::Point;
 
 pub type Grid = Array2<char>;
-pub type Index = (Ix, Ix);
 
 pub fn parse_lines(lines: &str) -> Array2<char> {
     let mut ascii: Vec<char> = vec![];
@@ -24,3 +25,16 @@ pub fn parse_lines(lines: &str) -> Array2<char> {
     Array2::from_shape_vec((height, width), ascii).unwrap()
 }
 
+pub(crate) trait GridLike {
+    fn at(&self, p: &Point) -> Option<char>;
+}
+
+impl GridLike for Grid {
+    fn at(&self, p: &Point) -> Option<char> {
+        let (x, y) = *p;
+        match (x.to_usize(), y.to_usize()) {
+            (Some(i), Some(j)) => self.get((i, j)).map(|c| *c),
+            _ => None,
+        }
+    }
+}
