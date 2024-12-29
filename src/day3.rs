@@ -1,4 +1,4 @@
-use lazy_regex::{Lazy, lazy_regex, Regex, regex_captures};
+use lazy_regex::{Lazy, lazy_regex, Regex};
 
 pub static MUL_RE: Lazy<Regex> = lazy_regex!(r"mul\((\d+),(\d+)\)");
 

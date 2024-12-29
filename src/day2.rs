@@ -16,7 +16,7 @@ pub fn run(input: &str) -> (usize, usize) {
         // Requires more than one correction. Don't even attempt to correct it.
         if non_increasing_values > 1 { continue; }
 
-        let mut needed_correction = false;
+        let needed_correction;
         if non_increasing_values == 1 {
             // The non-increasing entry can be merged either left or right, or just removed.
             correct_single_non_incrementing_value(&mut diffs);

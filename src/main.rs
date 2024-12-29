@@ -5,12 +5,15 @@ use std::time::Instant;
 mod day1;
 mod day2;
 mod day3;
+mod day4;
+mod grid;
 
 fn main() {
     let mut total_micros: u128 = 0;
     total_micros += time(1, &day1::run);
     total_micros += time(2, &day2::run);
     total_micros += time(3, &day3::run);
+    total_micros += time(4, &day4::run);
     println!("Total time: {} µs", total_micros);
 }
 
