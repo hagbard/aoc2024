@@ -1,18 +1,8 @@
 use ndarray::Array2;
-use strum_macros::EnumIter;
+use num_traits::ToPrimitive;
+use crate::point::Point;
 
 pub type Grid = Array2<char>;
-pub type Point = (usize, usize);
-
-pub trait PointLike {
-    fn step(&self, d: Dir, n: isize) -> Option<Point>;
-}
-
-impl PointLike for Point {
-    fn step(&self, d: Dir, n: isize) -> Option<Point> {
-        d.step(n, self)
-    }
-}
 
 pub fn parse_lines(lines: &str) -> Array2<char> {
     let mut ascii: Vec<char> = vec![];
@@ -35,56 +25,16 @@ pub fn parse_lines(lines: &str) -> Array2<char> {
     Array2::from_shape_vec((height, width), ascii).unwrap()
 }
 
-#[derive(Copy, Clone, EnumIter)]
-#[repr(u16)]
-pub enum Dir {
-    // Encode (-1, 0, 1) for both X and Y direction as signed bytes in a single u16.
-    Right = 0x0100,
-    RightUp = 0x0101,
-    Up = 0x0001,
-    LeftUp = 0xFF01,
-    Left = 0xFF00,
-    LeftDown = 0xFFFF,
-    Down = 0x00FF,
-    RightDown = 0x01FF,
+pub(crate) trait GridLike {
+    fn at(&self, p: &Point) -> Option<char>;
 }
 
-impl Dir {
-    pub fn offset(&self) -> (isize, isize) {
-        let n = *self as u16;
-        (((n >> 8) & 0xFF) as i8 as isize, (n & 0xFF) as i8 as isize)
-    }
-
-    pub fn step(&self, n: isize, p: &Point) -> Option<Point> {
-        let (x, y) = p;
-        let (ix, iy) = self.offset();
-        match (ix.checked_mul(n).and_then(|m| x.checked_add_signed(m)),
-               iy.checked_mul(n).and_then(|m| y.checked_add_signed(m))) {
-            (Some(next_x), Some(next_y)) => {
-                Some((next_x, next_y))
-            }
+impl GridLike for Grid {
+    fn at(&self, p: &Point) -> Option<char> {
+        let (x, y) = *p;
+        match (x.to_usize(), y.to_usize()) {
+            (Some(i), Some(j)) => self.get((i, j)).map(|c| *c),
             _ => None,
         }
-    }
-}
-
-pub struct GridIter {
-    p: Option<Point>,
-    d: Dir,
-}
-
-impl GridIter {
-    pub fn new<'a>(p: Option<Point>, d: Dir) -> GridIter {
-        GridIter { p, d }
-    }
-}
-
-impl Iterator for GridIter {
-    type Item = Point;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        let next = self.p;
-        self.p = next.and_then(|p| self.d.step(1, &p));
-        next
     }
 }
