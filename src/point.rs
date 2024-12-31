@@ -1,3 +1,4 @@
+use std::array::IntoIter;
 use strum_macros::EnumIter;
 
 #[derive(Copy, Clone, EnumIter)]
@@ -15,6 +16,20 @@ pub enum Dir {
 }
 
 impl Dir {
+    pub fn cardinals() -> IntoIter<Dir, 4> {
+        // Slightly cheeky to return an Iterator struct defined elsewhere, but this is all in
+        // service of making the business logic read more cleanly. E.g.:
+        //   Dir::cardinals().map(|&d| ...)
+        // rather than:
+        //   Dir::cardinals().into_iter().map(|&d| ...)
+        //   Dir::cardinals().iter().map(|&&d| ...)
+        [Dir::Right, Dir::Up, Dir::Left, Dir::Down].into_iter()
+    }
+
+    pub fn diagonals() -> IntoIter<Dir, 4> {
+        [Dir::RightUp, Dir::LeftUp, Dir::LeftDown, Dir::RightDown].into_iter()
+    }
+
     pub fn offset(&self) -> Point {
         let n = *self as u16;
         (((n >> 8) & 0xFF) as i8 as isize, (n & 0xFF) as i8 as isize)
@@ -49,26 +64,5 @@ impl PointLike for Point {
     fn of(idx: &(usize, usize)) -> Point {
         let &(x, y) = idx;
         (x as isize, y as isize)
-    }
-}
-
-pub struct GridIter {
-    p: Option<Point>,
-    d: Dir,
-}
-
-impl GridIter {
-    pub fn new<'a>(p: Option<Point>, d: Dir) -> GridIter {
-        GridIter { p, d }
-    }
-}
-
-impl Iterator for GridIter {
-    type Item = Point;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        let next = self.p;
-        self.p = next.and_then(|p| self.d.step(1, &p));
-        next
     }
 }
